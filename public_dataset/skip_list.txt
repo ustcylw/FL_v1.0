@@ -1,0 +1,5 @@
+/media/intellif/data/datasets/300w/300w/01_Indoor/indoor_266.png
+/media/intellif/data/datasets/300w/300w/01_Indoor/indoor_284.png
+/media/intellif/data/datasets/300w/300w/01_Indoor/indoor_044.png
+/media/intellif/data/datasets/300w/300w/01_Indoor/indoor_156.png
+/media/intellif/data/datasets/300w/300w/02_Outdoor/outdoor_085.png
