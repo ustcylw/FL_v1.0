@@ -77,9 +77,9 @@ def test():
     image_list_file = '/media/intellif/data/datasets/300w/300w/image_list.txt'
     save_dir = '../result'
     # pre_trained = './../params/FL_1_13628_model.ckpt'
-    pre_trained = './../params/FL_204_18175_model.ckpt'
+    pre_trained = './../params/FL_310_39985_model.ckpt'
     
-    use_cuda = False
+    use_cuda = True
     device = torch.device('cuda:0') if use_cuda and torch.cuda.is_available() else torch.device('cpu')
     
     # 加载模型

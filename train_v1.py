@@ -16,13 +16,16 @@ import log.logger as Logger
 import cv2
 import time
 import loss.loss_v1 as LossV1
+import eval.eval as Eval
+from collections import OrderedDict
+import utils.DataStructUtils as DataStructUtils
 
 
 config = dict()
-config['lr'] = 0.001
+config['lr'] = 0.0001
 config['momentum'] = 0.9
 config['weight_decay'] = 1e-4
-config['start_epoch'] = 300
+config['start_epoch'] = 400
 config['epoch_num'] = 100
 config['batch_size'] = 60  # 128
 config['sigma'] = 5.
@@ -30,8 +33,10 @@ config['debug_vis'] = False         # 是否可视化heatmaps
 config['is_test'] = False
 config['save_freq'] = 1
 config['save_dir'] = './params'
-config['pre-trained'] = './params/FL_205_21810_model.ckpt'  # params/FL_9_400_model.ckpt'
+config['pre-trained'] = './params/FL_315_58160_model.ckpt'  # params/FL_9_400_model.ckpt'
 config['eval_freq'] = 5
+config['eval_root_dir'] = '/media/intellif/data/datasets/300w/300w'
+config['eval_image_list_file'] = '/media/intellif/data/datasets/300w/300w/image_list.txt'
 config['debug'] = False
 config['log_dir'] = './logs'
 config['featurename2id'] = {
@@ -113,9 +118,19 @@ if __name__ == '__main__':
     # save_file = '/media/intellif/data/datasets/300VW/test_1.txt'
     root_dir = '/media/intellif/data/datasets/300VW/300VW_Dataset_2015_12_14'
     save_file = '/media/intellif/data/datasets/300VW/300VW_Dataset.txt'
+    mean_errs = OrderedDict()
 
     # log
     logger = Logger.LogHandler('train_002')
+
+    eval = Eval.Eval(
+        root_dir=config['eval_root_dir'],
+        image_list_file=config['eval_image_list_file'],
+        params_file='',
+        use_cuda=False,
+        save_dir='../result'
+    )
+    eval.load_data_file()
 
     # summary-writer
     time_dir = time.strftime('%Y-%m-%d--%H-%M-%S',time.localtime(time.time()))
@@ -149,7 +164,7 @@ if __name__ == '__main__':
 
     # optimizer
     # optimizer = optim.SGD(net.parameters(), lr=config['lr'], momentum=config['momentum'] , weight_decay=config['weight_decay'])
-    optimizer = optim.Adam(net.parameters(),lr=config['lr'])
+    optimizer = optim.Adam(net.parameters(),lr=config['lr'], weight_decay=config['weight_decay'])
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [2, 6], 0.1)
     
     # load dataset
@@ -219,12 +234,27 @@ if __name__ == '__main__':
             #     # print('outputs[0][jj]: ', outputs[0][jj].clone().cpu().data.numpy().reshape((1, 128, 128)).shape)
             #     writer.add_image(str(jj), img.reshape((3, 128, 128)), step)
 
-            
+                
         # save params
+        save_file = config['save_dir'] + '/FL_{}_{}_model.ckpt'.format(epoch, step)
         if (epoch+1) % config['save_freq'] == 0 or epoch == config['epoch_num'] - 1:
-            save_file = config['save_dir'] + '/FL_{}_{}_model.ckpt'.format(epoch, step)
             logger.info('saveing model {}'.format(save_file))
             torch.save(net.state_dict(), save_file)
             logger.info('save model complete.')
+
+        # evaluate error
+        print('='*80)
+        print('\n evaluate with [{}]'.format(save_file))
+        eval.reset_model(params_file=save_file)
+        eval.eval()
+        mean_err = eval.get_result()
+        mean_errs = DataStructUtils.sort_orddict(mean_errs)
+        mean_errs, filter_errs = DataStructUtils.add_and_filte_orddict(mean_errs, mean_err, save_file, 5)
+        for k, v in mean_errs:
+            print('[keep] params {} --> {}'.format(k, v))
+        for k, v in filter_errs:
+            os.system('rm -rf {}'.format(v))
+            print('[delete] old params {} --> {}'.format(k, v))
+
 
     wirter.close()

@@ -79,7 +79,7 @@ def test():
     save_dir = '../result'
     pre_trained = './../params/FL_1_13628_model.ckpt'
     
-    use_cuda = False
+    use_cuda = True
     device = torch.device('cuda:0') if use_cuda and torch.cuda.is_available() else torch.device('cpu')
 
     # 加载模型
