@@ -5,9 +5,8 @@ detect facial landmark with hourglass
 
 # test nmse
 
-FL_315_58160_model.ckpt
+model:FL_315_58160_model.ckpt
 error_per_landmark:  2831.8599271209087
-Result:
 mean error: 4.75943 
 failures(err>0.1): 9.08%(54/595)
 
